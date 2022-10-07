@@ -1,0 +1,13 @@
+{{template "header.gohtml" .}}
+
+<div>
+    {{if .error}}
+        <div class="alert alert-danger" role="alert">
+            {{.error}}
+        </div>
+    {{end}}
+
+    <a href="/" class="btn-primary btn">Home</a>
+</div>
+
+{{template "footer.gohtml" .}}

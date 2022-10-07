@@ -1,0 +1,44 @@
+<div class="modal fade" id="createSubscriptionForm{{.Name}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="createSubscriptionFormLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="createSubscriptionFormLabel{{.Name}}">Create subscription</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/topic/{{.ID}}/subscription" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="subscription_name{{.Name}}" class="form-label">Subscription name</label>
+                        <input required name="name" class="form-control" id="subscription_name{{.Name}}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="inp_publish_endpoint{{.Name}}" class="form-label">Publish endpoint</label>
+                        <input name="publishEndpoint" class="form-control" id="inp_publish_endpoint{{.Name}}">
+                        <div id="publish_endpoint{{.Name}}" class="form-text">Fill this field in case of the publish subscription type</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ackDeadline{{.Name}}"  class="form-label">Ack deadline seconds</label>
+                        <input name="ackDeadline" value="10" required class="form-control" id="ackDeadline{{.Name}}">
+                    </div>
+                    <div class="mb-3">
+                        <input name="enableMessageOrdering" value="true" class="form-check-input" type="checkbox" id="enableMessageOrdering{{.Name}}">
+                        <label class="form-check-label" for="enableMessageOrdering{{.Name}}">
+                            Enable exactly once delivery
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <input name="enableExactlyOnceDelivery" value="true" class="form-check-input" type="checkbox" id="enableExactlyOnceDelivery{{.Name}}">
+                        <label class="form-check-label" for="enableExactlyOnceDelivery{{.Name}}">
+                            Enable message ordering
+                        </label>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

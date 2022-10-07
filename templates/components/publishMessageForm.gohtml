@@ -1,0 +1,26 @@
+<div class="modal fade" id="publishMessageForm{{.Name}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="publishMessageFormLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="publishMessageFormLabel{{.Name}}">Publish message</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/topic/{{.ID}}/message/publish" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="message_data{{.Name}}" class="form-label">Message</label>
+                        <textarea name="message" required class="form-control" id="message_data{{.Name}}" rows="5"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message_data{{.Name}}" class="form-label">Attributes</label>
+                        <textarea name="attributes" class="form-control" id="attributes_data{{.Name}}" rows="5" >{}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Publish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
