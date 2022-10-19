@@ -21,32 +21,32 @@ type Subscription struct {
 }
 
 type SubscriptionFormData struct {
-	SubscriptionName          string `form:"name" binding:"required"`
-	AckDeadline               int    `form:"ackDeadline" binding:"required"`
-	EnableExactlyOnceDelivery bool   `form:"enableExactlyOnceDelivery"`
-	EnableMessageOrdering     bool   `form:"enableMessageOrdering"`
-	PublishEndpoint           string `form:"publishEndpoint"`
+	SubscriptionName          string `json:"name" binding:"required"`
+	AckDeadline               int    `json:"ackDeadline" binding:"required"`
+	EnableExactlyOnceDelivery bool   `json:"enableExactlyOnceDelivery"`
+	EnableMessageOrdering     bool   `json:"enableMessageOrdering"`
+	PublishEndpoint           string `json:"publishEndpoint"`
 }
 
 func (mp *Subscription) HandleDeleteSubscription(c *gin.Context) {
 	subscriptionName := c.Param("subscriptionName")
 	if err := mp.pubSub.DeleteSubscription(c, subscriptionName); err != nil {
-		c.HTML(http.StatusInternalServerError, "error.gohtml", gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.Redirect(http.StatusFound, "/")
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func (mp *Subscription) HandleGetMessages(c *gin.Context) {
 	subscriptionName := c.Param("subscriptionName")
 	if subscriptionName == "" {
-		c.HTML(http.StatusBadRequest, "error.gohtml", gin.H{"error": "Subscription name is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Subscription name is required"})
 		return
 	}
 
 	messages, err := mp.pubSub.GetMessages(c, subscriptionName, 10)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.gohtml", gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -65,17 +65,17 @@ func (mp *Subscription) HandleGetMessages(c *gin.Context) {
 		messagesView[i].Attributes = string(atr)
 	}
 
-	c.HTML(http.StatusOK, "messages.gohtml", gin.H{"messages": messagesView, "subscriptionName": subscriptionName})
+	c.JSON(http.StatusOK, gin.H{"messages": messagesView, "subscriptionName": subscriptionName})
 }
 
 func (mp *Subscription) HandleCreateSubscription(c *gin.Context) {
 	topicName := c.Param("topicName")
 	if topicName == "" {
-		c.HTML(http.StatusBadRequest, "error.gohtml", gin.H{"error": "topic name is empty"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic name is empty"})
 		return
 	}
 	var data SubscriptionFormData
-	if err := c.ShouldBind(&data); err != nil {
+	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -90,9 +90,9 @@ func (mp *Subscription) HandleCreateSubscription(c *gin.Context) {
 	}
 
 	if err := mp.pubSub.CreateSubscription(c, data.SubscriptionName, topicName, config); err != nil {
-		c.HTML(http.StatusInternalServerError, "error.gohtml", gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/")
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
