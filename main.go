@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/gin-contrib/cors"
+	"net/http"
 	"os"
 	"os/signal"
 	"pubsub-ui/src"
@@ -29,19 +31,20 @@ func main() {
 
 	err := src.GetContainer(ctx).Invoke(func(topic *controllers.Topic, subscription *controllers.Subscription) error {
 		r := gin.Default()
-		r.Static("/css", "./templates/static/css")
-		r.Static("/img", "./templates/static/img")
-		r.Static("/fonts", "./templates/static/fonts")
-		r.Static("/js", "./templates/static/js")
+		r.Use(cors.Default())
+		r.Static("/ui", "./frontend/dist/")
+		r.Static("/assets", "./frontend/dist/assets")
+		r.GET("/", func(c *gin.Context) {
+			c.Redirect(http.StatusFound, "/ui")
+		})
 
-		r.LoadHTMLGlob("templates/**/*.gohtml")
-		r.GET("/", topic.HandleIndex)
-		r.POST("/topic", topic.HandleCreateTopic)
-		r.POST("/topic/:topicName/delete", topic.HandleDeleteTopic)
-		r.POST("/topic/:topicName/subscription", subscription.HandleCreateSubscription)
-		r.POST("/topic/:topicName/subscription/:subscriptionName/delete", subscription.HandleDeleteSubscription)
-		r.POST("/topic/:topicName/message/publish", topic.HandlePublishMessage)
-		r.GET("/subscription/:subscriptionName/messages", subscription.HandleGetMessages)
+		r.GET("/api/topic", topic.HandleGetTopicList)
+		r.POST("/api/topic", topic.HandleCreateTopic)
+		r.DELETE("/api/topic/:topicName", topic.HandleDeleteTopic)
+		r.POST("/api/topic/:topicName/subscription", subscription.HandleCreateSubscription)
+		r.DELETE("/api/topic/subscription/:subscriptionName", subscription.HandleDeleteSubscription)
+		r.POST("/api/topic/:topicName/message/publish", topic.HandlePublishMessage)
+		r.GET("/api/subscription/:subscriptionName/messages", subscription.HandleGetMessages)
 		if err := r.Run(":8780"); err != nil {
 			return err
 		}

@@ -5,7 +5,7 @@ RUN cd /app && unset GOPATH && CGO_ENABLED=0 go build -a -installsuffix cgo -o /
 FROM alpine:3.8 as prod
 RUN apk add --no-cache tini
 COPY --from=build /go/bin/pubsub-ui /pubsub-ui
-COPY --from=build /app/templates /templates
+COPY --from=build /app/frontend/dist /frontend/dist
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["/pubsub-ui"]
 EXPOSE 8780

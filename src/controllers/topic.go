@@ -20,10 +20,10 @@ type Topic struct {
 	pubSub *pub_sub.PubSub
 }
 
-func (mp *Topic) HandleIndex(c *gin.Context) {
+func (mp *Topic) HandleGetTopicList(c *gin.Context) {
 	topics, err := mp.pubSub.TopicsList(c)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.gohtml", gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -50,7 +50,7 @@ func (mp *Topic) HandleIndex(c *gin.Context) {
 
 		subscriptions, subsErr := mp.pubSub.SubscriptionsList(c, topic.ID())
 		if subsErr != nil {
-			c.HTML(http.StatusInternalServerError, "error.gohtml", gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": subsErr.Error()})
 			return
 		}
 		topicsForView[i].Subscriptions = make([]SubscriptionView, len(subscriptions))
@@ -68,31 +68,31 @@ func (mp *Topic) HandleIndex(c *gin.Context) {
 			topicsForView[i].Subscriptions[j].AckDeadlineSeconds = int(subConfig.AckDeadline.Seconds())
 		}
 	}
-	c.HTML(http.StatusOK, "index.gohtml", gin.H{"title": "Main Page", "topics": topicsForView})
+	c.JSON(http.StatusOK, topicsForView)
 }
 
 func (mp *Topic) HandlePublishMessage(c *gin.Context) {
 	topicName := c.Param("topicName")
 	if topicName == "" {
-		c.HTML(http.StatusBadRequest, "error.gohtml", gin.H{"error": "topic name is empty"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic name is empty"})
 		return
 	}
 
 	type Message struct {
-		Message    string `form:"message" required:"true"`
-		Attributes string `form:"attributes"`
+		Message    string `json:"message" required:"true"`
+		Attributes string `json:"attributes"`
 	}
 
 	var msg Message
-	if err := c.ShouldBind(&msg); err != nil {
-		c.HTML(http.StatusBadRequest, "error.gohtml", gin.H{"error": err.Error()})
+	if err := c.ShouldBindJSON(&msg); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	attributes := make(map[string]string)
 	if msg.Attributes != "" {
 		if err := json.Unmarshal([]byte(msg.Attributes), &attributes); err != nil {
-			c.HTML(http.StatusBadRequest, "error.gohtml", gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 	}
@@ -106,34 +106,42 @@ func (mp *Topic) HandlePublishMessage(c *gin.Context) {
 		},
 	)
 	if publishErr != nil {
-		c.HTML(http.StatusInternalServerError, "error.gohtml", gin.H{"error": publishErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": publishErr.Error()})
 		return
 	}
-	c.Redirect(http.StatusFound, "/")
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func (mp *Topic) HandleCreateTopic(c *gin.Context) {
-	topicName := c.PostForm("name")
-	if topicName == "" {
-		c.HTML(http.StatusBadRequest, "error.gohtml", gin.H{"error": "topic name is empty"})
+
+	createTopicForm := struct {
+		Name string `json:"name" required:"true"`
+	}{}
+
+	if err := c.ShouldBindJSON(&createTopicForm); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := mp.pubSub.CreateTopic(c, topicName); err != nil {
-		c.HTML(http.StatusInternalServerError, "error.gohtml", gin.H{"error": err.Error()})
+	if createTopicForm.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic name is empty"})
 		return
 	}
-	c.Redirect(http.StatusFound, "/")
+	if err := mp.pubSub.CreateTopic(c, createTopicForm.Name); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func (mp *Topic) HandleDeleteTopic(c *gin.Context) {
 	topicName := c.Param("topicName")
 	if topicName == "" {
-		c.HTML(http.StatusBadRequest, "error.gohtml", gin.H{"error": "topic name is empty"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic name is empty"})
 		return
 	}
 	if err := mp.pubSub.DeleteTopic(c, topicName); err != nil {
-		c.HTML(http.StatusInternalServerError, "error.gohtml", gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.Redirect(http.StatusFound, "/")
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
