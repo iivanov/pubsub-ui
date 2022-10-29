@@ -11,6 +11,7 @@
 
 <script>
 import {onMounted, ref, watch} from "vue";
+import {getDataFromApi} from "../../../../composables/fetchData";
 
 export default {
   name: "MessageList",
@@ -31,22 +32,17 @@ export default {
     const getMessages = async () => {
       isLoaded.value = false;
       messages.value = [];
-      fetch(`/api/subscription/${props.subscriptionName}/messages`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-          .then(response => response.json())
-          .then(data => {
+      getDataFromApi(
+          `/api/subscription/${props.subscriptionName}/messages`,
+          (data) => {
             messages.value = data.messages;
             isLoaded.value = true;
-          })
-          .catch(error => {
-            console.error('Error:', error);
+          },
+          () => {
             isLoaded.value = true;
-          });
-    }
+          }
+      );
+    };
 
     watch(() => props.subscriptionName, () => {
       getMessages();

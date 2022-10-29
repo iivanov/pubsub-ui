@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"pubsub-ui/src/controllers/dto"
 	"pubsub-ui/src/pub_sub"
 )
 
@@ -22,7 +23,7 @@ type Topic struct {
 func (mp *Topic) HandleGetTopicList(c *gin.Context) {
 	topics, err := mp.pubSub.TopicsList(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.NewErrorResponse(err.Error()))
 		return
 	}
 
@@ -49,7 +50,7 @@ func (mp *Topic) HandleGetTopicList(c *gin.Context) {
 
 		subscriptions, subsErr := mp.pubSub.SubscriptionsList(c, topic.ID())
 		if subsErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": subsErr.Error()})
+			c.JSON(http.StatusInternalServerError, dto.NewErrorResponse(err.Error()))
 			return
 		}
 		topicsForView[i].Subscriptions = make([]SubscriptionView, len(subscriptions))
@@ -67,13 +68,13 @@ func (mp *Topic) HandleGetTopicList(c *gin.Context) {
 			topicsForView[i].Subscriptions[j].AckDeadlineSeconds = int(subConfig.AckDeadline.Seconds())
 		}
 	}
-	c.JSON(http.StatusOK, topicsForView)
+	c.JSON(http.StatusOK, dto.NewSuccessResponse(topicsForView))
 }
 
 func (mp *Topic) HandlePublishMessage(c *gin.Context) {
 	topicName := c.Param("topicName")
 	if topicName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "topic name is empty"})
+		c.JSON(http.StatusBadRequest, dto.NewErrorResponse("topic name is empty"))
 		return
 	}
 
@@ -84,14 +85,14 @@ func (mp *Topic) HandlePublishMessage(c *gin.Context) {
 
 	var msg Message
 	if err := c.ShouldBindJSON(&msg); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.NewErrorResponse(err.Error()))
 		return
 	}
 
 	attributes := make(map[string]string)
 	if msg.Attributes != "" {
 		if err := json.Unmarshal([]byte(msg.Attributes), &attributes); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, dto.NewErrorResponse(err.Error()))
 			return
 		}
 	}
@@ -105,10 +106,10 @@ func (mp *Topic) HandlePublishMessage(c *gin.Context) {
 		},
 	)
 	if publishErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": publishErr.Error()})
+		c.JSON(http.StatusInternalServerError, dto.NewErrorResponse(publishErr.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	c.JSON(http.StatusOK, dto.NewSuccessResponse(nil))
 }
 
 func (mp *Topic) HandleCreateTopic(c *gin.Context) {
@@ -118,29 +119,29 @@ func (mp *Topic) HandleCreateTopic(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBindJSON(&createTopicForm); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.NewErrorResponse(err.Error()))
 		return
 	}
 	if createTopicForm.Name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "topic name is empty"})
+		c.JSON(http.StatusBadRequest, dto.NewErrorResponse("topic name is empty"))
 		return
 	}
 	if err := mp.pubSub.CreateTopic(c, createTopicForm.Name); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.NewErrorResponse(err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	c.JSON(http.StatusOK, dto.NewSuccessResponse(nil))
 }
 
 func (mp *Topic) HandleDeleteTopic(c *gin.Context) {
 	topicName := c.Param("topicName")
 	if topicName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "topic name is empty"})
+		c.JSON(http.StatusBadRequest, dto.NewErrorResponse("topic name is empty"))
 		return
 	}
 	if err := mp.pubSub.DeleteTopic(c, topicName); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.NewErrorResponse(err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	c.JSON(http.StatusOK, dto.NewSuccessResponse(nil))
 }

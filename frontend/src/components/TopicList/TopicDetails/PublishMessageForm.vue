@@ -20,6 +20,7 @@
 
 <script>
 import {ref} from "vue";
+import {sendDataToApi} from "../../../composables/fetchData";
 
 export default {
   name: "PublishMessageForm",
@@ -37,21 +38,14 @@ export default {
     });
 
     const onSubmit = () => {
-      fetch(`/api/topic/${props.topicName}/message/publish`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formState.value),
-      })
-          .then((response) => response.json())
-          .then((data) => {
+      sendDataToApi(
+          `/api/topic/${props.topicName}/message/publish`,
+          formState.value,
+          (data) => {
             console.log('Success:', data);
             emit('published');
-          })
-          .catch((error) => {
-            console.error('Error:', error);
-          });
+          }
+      );
     };
 
     return {

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"pubsub-ui/src/controllers/dto"
 	"pubsub-ui/src/pub_sub"
 	"time"
 )
@@ -31,22 +32,24 @@ type SubscriptionFormData struct {
 func (mp *Subscription) HandleDeleteSubscription(c *gin.Context) {
 	subscriptionName := c.Param("subscriptionName")
 	if err := mp.pubSub.DeleteSubscription(c, subscriptionName); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Println("Error deleting subscription: ", err)
+		c.JSON(http.StatusInternalServerError, dto.NewErrorResponse(err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	c.JSON(http.StatusOK, dto.NewSuccessResponse(nil))
 }
 
 func (mp *Subscription) HandleGetMessages(c *gin.Context) {
 	subscriptionName := c.Param("subscriptionName")
 	if subscriptionName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Subscription name is required"})
+		c.JSON(http.StatusBadRequest, dto.NewErrorResponse("Subscription name is required"))
 		return
 	}
 
 	messages, err := mp.pubSub.GetMessages(c, subscriptionName, 10)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Println("Error getting messages: ", err)
+		c.JSON(http.StatusInternalServerError, dto.NewErrorResponse(err.Error()))
 		return
 	}
 
@@ -65,18 +68,29 @@ func (mp *Subscription) HandleGetMessages(c *gin.Context) {
 		messagesView[i].Attributes = string(atr)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"messages": messagesView, "subscriptionName": subscriptionName})
+	type response struct {
+		Messages         []MessageView `json:"messages"`
+		SubscriptionName string        `json:"subscriptionName"`
+	}
+
+	c.JSON(
+		http.StatusOK,
+		dto.NewSuccessResponse(response{
+			Messages:         messagesView,
+			SubscriptionName: subscriptionName,
+		}),
+	)
 }
 
 func (mp *Subscription) HandleCreateSubscription(c *gin.Context) {
 	topicName := c.Param("topicName")
 	if topicName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "topic name is empty"})
+		c.JSON(http.StatusBadRequest, dto.NewErrorResponse("topic name is empty"))
 		return
 	}
 	var data SubscriptionFormData
 	if err := c.ShouldBindJSON(&data); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.NewErrorResponse(err.Error()))
 		return
 	}
 
@@ -90,9 +104,9 @@ func (mp *Subscription) HandleCreateSubscription(c *gin.Context) {
 	}
 
 	if err := mp.pubSub.CreateSubscription(c, data.SubscriptionName, topicName, config); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.NewErrorResponse(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	c.JSON(http.StatusOK, dto.NewSuccessResponse(nil))
 }

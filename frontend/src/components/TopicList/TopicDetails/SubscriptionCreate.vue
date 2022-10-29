@@ -30,6 +30,7 @@
 
 <script>
 import {ref} from "vue";
+import {sendDataToApi} from "../../../composables/fetchData";
 
 export default {
   name: "SubscriptionCreate",
@@ -50,22 +51,14 @@ export default {
     });
 
     const onSubmit = () => {
-      fetch(`/api/topic/${props.topicName}/subscription`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formState.value),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Success:', data);
-          emit('created');
-        })
-        .catch((err) => {
-          console.error('Error:', err);
-          message.error(err.message);
-        });
+      sendDataToApi(
+          `/api/topic/${props.topicName}/subscription`,
+          formState.value,
+          (data) => {
+            console.log('Success:', data);
+            emit('created');
+          },
+      );
     };
 
     return {

@@ -41,9 +41,10 @@
 
 <script>
 import {defineComponent, onMounted, ref, computed} from 'vue';
-import { message } from 'ant-design-vue';
 import TopicCreate from "./TopicCreate.vue";
 import TopicDetails from "./TopicDetails/TopicDetails.vue";
+import {getDataFromApi} from "../../composables/fetchData";
+
 
 export default defineComponent({
   components: {TopicDetails, TopicCreate},
@@ -55,15 +56,7 @@ export default defineComponent({
     });
 
     const loadTopics = () => {
-      fetch('/api/topic')
-          .then((response) => response.json())
-          .then((data) => {
-            topics.value = data;
-          })
-          .catch((err) => {
-            console.error('Error:', err);
-            message.error(err.message);
-          });
+      getDataFromApi('/api/topic', (data) => topics.value = data);
     };
 
 

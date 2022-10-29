@@ -28,10 +28,10 @@
 
 <script>
 import {ref} from "vue";
-import {message} from "ant-design-vue";
 import SubscriptionCreate from "./SubscriptionCreate.vue";
 import SubscriptionList from "./SubscriptionList/SubscriptionList.vue";
 import PublishMessageForm from "@/components/TopicList/TopicDetails/PublishMessageForm.vue";
+import {deleteApiData} from "../../../composables/fetchData";
 
 export default {
   name: "TopicDetails",
@@ -61,18 +61,13 @@ export default {
     };
 
     const onTopicDelete = () => {
-      fetch(`/api/topic/${props.topic.Name}`, {
-        method: 'DELETE',
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Success:', data);
-          emit('topicInfoUpdated');
-        })
-        .catch((err) => {
-          console.error('Error:', err);
-          message.error(err.message);
-        });
+      deleteApiData(
+          `/api/topic/${props.topic.Name}`,
+          (data) => {
+            console.log('Success:', data);
+            emit('topicInfoUpdated');
+          }
+      );
     };
 
     return {

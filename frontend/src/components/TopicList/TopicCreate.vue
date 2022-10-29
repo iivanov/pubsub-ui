@@ -13,7 +13,7 @@
 
 <script>
 import {ref} from "vue";
-import {message} from "ant-design-vue";
+import {sendDataToApi} from "../../composables/fetchData";
 
 export default {
   name: "TopicCreate",
@@ -22,23 +22,10 @@ export default {
     const formState = ref({"name": ""});
 
     const onSubmit = () => {
-      fetch('/api/topic', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formState.value),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Success:', data);
-          formState.value.name = "";
-          emit('created');
-        })
-        .catch((err) => {
-          console.error('Error:', err);
-          message.error(err.message);
-        });
+      sendDataToApi('/api/topic', formState.value, (data) => {
+        formState.value.name = "";
+        emit('created');
+      });
     };
 
     return {

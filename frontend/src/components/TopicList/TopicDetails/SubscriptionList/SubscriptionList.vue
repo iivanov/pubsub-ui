@@ -29,9 +29,9 @@
 </template>
 
 <script>
-import {message} from "ant-design-vue";
 import {ref} from "vue";
 import MessageList from "@/components/TopicList/TopicDetails/SubscriptionList/MessageList.vue";
+import {deleteApiData} from "../../../../composables/fetchData";
 
 export default {
   name: "SubscriptionList",
@@ -58,20 +58,13 @@ export default {
     }
 
     const onSubscriptionDelete = (subscription) => {
-      fetch(`/api/topic/subscription/${subscription.Name}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then(response => {
-        if (response.ok) {
-          console.log('Success:', response);
-          emit('subscriptionInfoUpdated');
-        } else {
-          console.log('Error:', response);
-          message.error('Failed to delete subscription');
-        }
-      });
+      deleteApiData(
+          `/api/topic/subscription/${subscription.Name}`,
+          (response) => {
+            console.log('Success:', response);
+            emit('subscriptionInfoUpdated');
+          }
+      );
     }
 
     return {
