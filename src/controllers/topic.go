@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"pubsub-ui/src/pub_sub"
-	"strings"
 )
 
 func NewTopic(pubSub *pub_sub.PubSub) *Topic {
@@ -45,7 +44,7 @@ func (mp *Topic) HandleGetTopicList(c *gin.Context) {
 	topicsForView := make([]TopicForView, len(topics))
 
 	for i, topic := range topics {
-		topicsForView[i].Name = strings.Replace(topic.ID(), ".", "_", -1)
+		topicsForView[i].Name = topic.ID()
 		topicsForView[i].ID = topic.ID()
 
 		subscriptions, subsErr := mp.pubSub.SubscriptionsList(c, topic.ID())
