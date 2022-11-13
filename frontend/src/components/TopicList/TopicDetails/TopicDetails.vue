@@ -1,20 +1,33 @@
 <template>
-  <a-modal v-model:visible="isShowCreateSubscription" title="Create a new subscription">
-    <SubscriptionCreate :topicName="topic.Name" @created="onSubscriptionCreated"/>
+  <a-modal
+    v-model:visible="isShowCreateSubscription"
+    title="Create a new subscription"
+  >
+    <SubscriptionCreate
+      :topicName="topic.Name"
+      @created="onSubscriptionCreated"
+    />
     <template #footer></template>
   </a-modal>
 
   <a-modal v-model:visible="isShowPublishMessageForm" title="Publish message">
-    <PublishMessageForm :topicName="topic.Name" @published="isShowPublishMessageForm=false"/>
+    <PublishMessageForm
+      :topicName="topic.Name"
+      @published="isShowPublishMessageForm = false"
+    />
     <template #footer></template>
   </a-modal>
 
   <a-row justify="end" :gutter="16">
     <a-col>
-      <a-button type="primary" @click="showCreateSubscription">Create subscription</a-button>
+      <a-button type="primary" @click="showCreateSubscription"
+        >Create subscription</a-button
+      >
     </a-col>
     <a-col>
-      <a-button type="default" @click="isShowPublishMessageForm=true">Publish message</a-button>
+      <a-button type="default" @click="isShowPublishMessageForm = true"
+        >Publish message</a-button
+      >
     </a-col>
     <a-col>
       <a-button type="danger" @click="onTopicDelete">Delete topic</a-button>
@@ -22,28 +35,31 @@
   </a-row>
 
   <a-row style="margin-top: 10px">
-    <SubscriptionList :subscriptions="topic.Subscriptions" @subscriptionInfoUpdated="onSubscriptionInfoUpdated"/>
+    <SubscriptionList
+      :subscriptions="topic.Subscriptions"
+      @subscriptionInfoUpdated="onSubscriptionInfoUpdated"
+    />
   </a-row>
 </template>
 
 <script>
-import {ref} from "vue";
+import { ref } from "vue";
 import SubscriptionCreate from "./SubscriptionCreate.vue";
 import SubscriptionList from "./SubscriptionList/SubscriptionList.vue";
 import PublishMessageForm from "@/components/TopicList/TopicDetails/PublishMessageForm.vue";
-import {deleteApiData} from "../../../composables/fetchData";
+import { deleteApiData } from "@/composables/fetchData";
 
 export default {
   name: "TopicDetails",
-  components: {PublishMessageForm, SubscriptionList, SubscriptionCreate},
-  emits: ['topicInfoUpdated'],
+  components: { PublishMessageForm, SubscriptionList, SubscriptionCreate },
+  emits: ["topicInfoUpdated"],
   props: {
     topic: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
-  setup(props, {emit}) {
+  setup(props, { emit }) {
     const isShowCreateSubscription = ref(false);
     const isShowPublishMessageForm = ref(false);
 
@@ -53,21 +69,18 @@ export default {
 
     const onSubscriptionCreated = () => {
       isShowCreateSubscription.value = false;
-      emit('topicInfoUpdated');
+      emit("topicInfoUpdated");
     };
 
     const onSubscriptionInfoUpdated = () => {
-      emit('topicInfoUpdated');
+      emit("topicInfoUpdated");
     };
 
     const onTopicDelete = () => {
-      deleteApiData(
-          `/api/topic/${props.topic.Name}`,
-          (data) => {
-            console.log('Success:', data);
-            emit('topicInfoUpdated');
-          }
-      );
+      deleteApiData(`/api/topic/${props.topic.Name}`, (data) => {
+        console.log("Success:", data);
+        emit("topicInfoUpdated");
+      });
     };
 
     return {
@@ -76,12 +89,10 @@ export default {
       isShowCreateSubscription,
       isShowPublishMessageForm,
       onSubscriptionCreated,
-      onSubscriptionInfoUpdated
-    }
-  }
-}
+      onSubscriptionInfoUpdated,
+    };
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
